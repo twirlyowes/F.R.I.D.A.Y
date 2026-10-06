@@ -10,10 +10,10 @@ const {
     getAvatarURL
 } = require("./lib/pixelVillaUI");
 
-const STAFF_ROLE_ID = "1511051007772069929";
-const LOG_CHANNEL_ID = "1523648445276098680";
+const STAFF_ROLE_ID = "1556926120476016710";
+const LOG_CHANNEL_ID = "1556922911812620349";
 const ATLOGS_ROLE_ID = "1519005080471343216";
-const PIXEL_VILLA_GUILD_ID = "1510176142286389329";
+const PIXEL_VILLA_GUILD_ID = "1556762853892030504";
 
 const activeSessions = new Map();
 const voiceSessions = new Map();
