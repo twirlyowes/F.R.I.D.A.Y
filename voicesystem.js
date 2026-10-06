@@ -9,8 +9,8 @@ const {
 const db = require("./firebase");
 
 // CONFIGURATION: Set to your Join-to-Create voice channel ID
-const CREATE_CHANNEL_ID = "1522833037346214030";
-const TARGET_CATEGORY_ID = "1531893602706526208"; // Optional: Put your temporary category ID here so it only sweeps this category!
+const CREATE_CHANNEL_ID = "1556922362547539969";
+const TARGET_CATEGORY_ID = "1556922111396937748"; // Optional: Put your temporary category ID here so it only sweeps this category!
 
 
 // Active temporary channels tracker: Map<ChannelID, OwnerID>
