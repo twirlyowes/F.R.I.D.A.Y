@@ -48,7 +48,7 @@ client.setMaxListeners(20);
 const PREFIX = ".";
 const WARN_FILE = path.join(__dirname, "warnings.json");
 
-const GUILD_ID = "1510176142286389329";
+const GUILD_ID = "1556762853892030504";
 
 const ALLOWED_SERVER_IDS = [
   GUILD_ID,
