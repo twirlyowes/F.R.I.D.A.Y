@@ -16,7 +16,6 @@ const {
 const fs = require("fs").promises;
 const path = require("path");
 const config = require("./config.json");
-const hubCommand = require("./minigames/hub.js");
 const consoleLogger = require("./console");
 const { COLORS, createCard, getAvatarURL } = require("./lib/pixelVillaUI");
 
@@ -34,6 +33,7 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildModeration,
     GatewayIntentBits.GuildPresences,
     GatewayIntentBits.DirectMessages
   ],
@@ -45,15 +45,8 @@ const client = new Client({
 consoleLogger.connect(client);
 client.setMaxListeners(20);
 
-const PREFIX = ".";
 const WARN_FILE = path.join(__dirname, "warnings.json");
 
-const GUILD_ID = "1556762853892030504";
-
-const ALLOWED_SERVER_IDS = [
-  GUILD_ID,
-  "1531246699975020544"
-];
 
 const slashCommands = [
   new SlashCommandBuilder()
@@ -67,7 +60,7 @@ async function registerSlashCommands() {
     const rest = new REST({ version: "10" }).setToken(config.TOKEN);
 
     await rest.put(
-      Routes.applicationGuildCommands(client.user.id, GUILD_ID),
+      Routes.applicationCommands(client.user.id),
       { body: slashCommands }
     );
 
@@ -282,16 +275,14 @@ async function sendLog(
   guild,
   options
 ) {
-  if (!config.LOG_CHANNEL_ID) return;
+  const { getGuildConfig } = require("./guildConfig");
+  const guildConfig = await getGuildConfig(guild.id);
+  if (!guildConfig.logChannelId) return;
 
   try {
     const channel =
-      guild.channels.cache.get(
-        config.LOG_CHANNEL_ID
-      ) ||
-      await guild.channels
-        .fetch(config.LOG_CHANNEL_ID)
-        .catch(() => null);
+      guild.channels.cache.get(guildConfig.logChannelId) ||
+      await guild.channels.fetch(guildConfig.logChannelId).catch(() => null);
 
     if (
       channel &&
@@ -325,50 +316,7 @@ client.once(
       status: "dnd"
     });
 
-    for (
-      const guild of client.guilds.cache.values()
-    ) {
-      if (
-        !ALLOWED_SERVER_IDS.includes(
-          guild.id
-        )
-      ) {
-        console.log(
-          `Leaving unauthorized server: ${guild.name}`
-        );
-
-        await guild.leave().catch(err =>
-          console.error(
-            `Failed to leave ${guild.name}:`,
-            err
-          )
-        );
-      }
-    }
-
     await registerSlashCommands();
-  }
-);
-
-client.on(
-  "guildCreate",
-  async guild => {
-    if (
-      !ALLOWED_SERVER_IDS.includes(
-        guild.id
-      )
-    ) {
-      console.log(
-        `Leaving unauthorized server: ${guild.name}`
-      );
-
-      await guild.leave().catch(err =>
-        console.error(
-          `Failed to leave ${guild.name}:`,
-          err
-        )
-      );
-    }
   }
 );
 
@@ -406,6 +354,8 @@ client.on(
     const rawContent =
       message.content.trim();
 
+    const { getPrefix, getGuildConfig } = require("./guildConfig");
+    const PREFIX = await getPrefix(message.guild.id);
     const words =
       rawContent.split(/ +/);
 
@@ -415,16 +365,7 @@ client.on(
     let command = "";
     let args = [];
 
-    if (
-      firstWord === "purge" ||
-      firstWord === "vcp"
-    ) {
-      command = firstWord;
-      args = words.slice(1);
-
-    } else if (
-      rawContent.startsWith(PREFIX)
-    ) {
+    if (rawContent.startsWith(PREFIX)) {
       args =
         rawContent
           .slice(PREFIX.length)
@@ -483,59 +424,6 @@ client.on(
           flags:
             MessageFlags.IsComponentsV2
         });
-      }
-
-      if (command === "minigames") {
-        await hubCommand.execute(
-          message,
-          args
-        );
-
-        return;
-      }
-
-      if (command === "stopgame") {
-        if (
-          !message.member.permissions.has(
-            PermissionsBitField.Flags.ManageMessages
-          )
-        ) {
-          return message.reply(
-            cardReply(
-              COLORS.RED,
-              "❌ You need **Manage Messages** permissions to force-stop a game."
-            )
-          );
-        }
-
-        const gameManager =
-          require(
-            "./minigames/utils/GameManager"
-          );
-
-        if (
-          gameManager.isGameRunning(
-            message.channel.id
-          )
-        ) {
-          gameManager.deleteGame(
-            message.channel.id
-          );
-
-          return message.reply(
-            cardReply(
-              COLORS.GREEN,
-              "🛑 The active game lobby has been forcefully closed and the channel is now unlocked."
-            )
-          );
-        } else {
-          return message.reply(
-            cardReply(
-              COLORS.RED,
-              "ℹ️ There are no active minigames running in this channel right now."
-            )
-          );
-        }
       }
 
       if (command === "mute") {
@@ -863,6 +751,8 @@ client.on(
 );
 
 require("./firebase");
+require("./guildConfig")(client);
+require("./antinuke")(client);
 
 console.log("Loading help...");
 require("./help")(client);
