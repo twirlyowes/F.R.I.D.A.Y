@@ -23,7 +23,7 @@ const { COLORS, createCard, getAvatarURL } = require("./lib/pixelVillaUI");
 config.TOKEN = process.env.DISCORD_TOKEN;
 
 if (!config.TOKEN) {
-  console.error("❌ DISCORD_TOKEN environment variable is not set.");
+  console.error("<:error_g:1561271715164721245> DISCORD_TOKEN environment variable is not set.");
   process.exit(1);
 }
 
@@ -71,9 +71,9 @@ async function registerSlashCommands() {
       { body: slashCommands }
     );
 
-    console.log("✅ Slash commands registered.");
+    console.log("<:success_g:1561271843346714777> Slash commands registered.");
   } catch (err) {
-    console.error("❌ Failed to register slash commands:", err);
+    console.error("<:error_g:1561271715164721245> Failed to register slash commands:", err);
   }
 }
 
@@ -503,7 +503,7 @@ client.on(
           return message.reply(
             cardReply(
               COLORS.RED,
-              "❌ You need **Manage Messages** permissions to force-stop a game."
+              "<:error_g:1561271715164721245> You need **Manage Messages** permissions to force-stop a game."
             )
           );
         }
@@ -532,7 +532,7 @@ client.on(
           return message.reply(
             cardReply(
               COLORS.RED,
-              "ℹ️ There are no active minigames running in this channel right now."
+              "<:info_g:1561269600564281374> There are no active minigames running in this channel right now."
             )
           );
         }
@@ -914,11 +914,11 @@ console.log(
 
 client.login(config.TOKEN)
   .then(() =>
-    console.log("✅ Login successful")
+    console.log("<:success_g:1561271843346714777> Login successful")
   )
   .catch(err =>
     console.error(
-      "❌ Login failed:",
+      "<:error_g:1561271715164721245> Login failed:",
       err
     )
   );
